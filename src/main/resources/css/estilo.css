@@ -5,12 +5,10 @@
    Fuentes: Press Start 2P (títulos) · VT323 (general)
    ========================================================= */
 
-/* Importa las fuentes pixel-art desde Google Fonts */
+/* Carga las fuentes desde internet */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
 
-/* --------------------------------------------------
-   Variables globales de la paleta
--------------------------------------------------- */
+/* Colores principales del programa */
 * {
     -fx-color-fondo:    #FED16D;
     -fx-color-borde:    #754405;
@@ -20,18 +18,14 @@
     -fx-color-error:    #FF2600;
 }
 
-/* --------------------------------------------------
-   Raíz / fondo de ventanas
--------------------------------------------------- */
+/* Color de fondo general */
 .root {
     -fx-background-color: #FED16D;
     -fx-font-family: 'VT323';
     -fx-font-size: 21px;
 }
 
-/* --------------------------------------------------
-   Títulos (Label con styleClass="titulo")
--------------------------------------------------- */
+/* Estilo de los titulos grandes */
 .titulo {
     -fx-font-family: 'Press Start 2P';
     -fx-font-size: 104px;
@@ -39,27 +33,21 @@
     -fx-wrap-text: true;
 }
 
-/* --------------------------------------------------
-   Subtítulos de sección
--------------------------------------------------- */
+/* Estilo de los titulos medianos */
 .subtitulo {
     -fx-font-family: 'Press Start 2P';
     -fx-font-size: 13px;
     -fx-text-fill: #754405;
 }
 
-/* --------------------------------------------------
-   Etiquetas generales
--------------------------------------------------- */
+/* Estilo del texto normal */
 .label {
     -fx-font-family: 'VT323';
     -fx-font-size: 21px;
     -fx-text-fill: #000000;
 }
 
-/* --------------------------------------------------
-   Botones principales
--------------------------------------------------- */
+/* Diseño de los botones normales */
 .button {
     -fx-background-color: #FFA100;
     -fx-border-color: #754405;
@@ -85,7 +73,7 @@
     -fx-scale-y: 0.97;
 }
 
-/* Botón de acción destructiva (eliminar) */
+/* Boton rojo para borrar cosas */
 .button-peligro {
     -fx-background-color: #FF2600;
     -fx-border-color: #754405;
@@ -97,9 +85,7 @@
     -fx-background-color: #ff5533;
 }
 
-/* --------------------------------------------------
-   Botones del menú principal (grandes, en estrella)
--------------------------------------------------- */
+/* Diseño de los botones grandes del menu */
 .boton-menu {
     -fx-background-color: #FFA100;
     -fx-border-color: #754405;
@@ -123,9 +109,7 @@
     -fx-scale-y: 1.05;
 }
 
-/* --------------------------------------------------
-   Campos de texto y áreas de texto
--------------------------------------------------- */
+/* Diseño de las cajas para escribir texto */
 .text-field, .text-area {
     -fx-background-color: #FFEAAD;
     -fx-border-color: #754405;
@@ -143,9 +127,7 @@
     -fx-effect: dropshadow(gaussian, #FFA100, 6, 0.5, 0, 0);
 }
 
-/* --------------------------------------------------
-   ComboBox
--------------------------------------------------- */
+/* Diseño de las listas desplegables */
 .combo-box {
     -fx-background-color: #FFEAAD;
     -fx-border-color: #754405;
@@ -166,9 +148,7 @@
     -fx-border-color: #754405;
 }
 
-/* --------------------------------------------------
-   TableView
--------------------------------------------------- */
+/* Diseño de las tablas */
 .table-view {
     -fx-background-color: #FFEAAD;
     -fx-border-color: #754405;
@@ -198,18 +178,14 @@
     -fx-background-color: #ffe5a0;
 }
 
-/* --------------------------------------------------
-   Etiqueta de error (Label con styleClass="error")
--------------------------------------------------- */
+/* Texto rojo para mostrar errores */
 .error {
     -fx-text-fill: #FF2600;
     -fx-font-family: 'VT323';
     -fx-font-size: 19px;
 }
 
-/* --------------------------------------------------
-   Panel / VBox de formulario
--------------------------------------------------- */
+/* Cajas que envuelven los formularios */
 .panel-formulario {
     -fx-background-color: #FFEAAD;
     -fx-border-color: #754405;
@@ -218,9 +194,7 @@
     -fx-spacing: 10;
 }
 
-/* --------------------------------------------------
-   ScrollPane
--------------------------------------------------- */
+/* Diseño de las barras para hacer scroll */
 .scroll-pane {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
