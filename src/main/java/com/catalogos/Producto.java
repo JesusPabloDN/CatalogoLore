@@ -1,9 +1,6 @@
 package com.catalogos;
 
-/**
- * Representa un producto artesanal del catálogo.
- * disponibilidad: true = visible en el PDF / false = "No Disponible".
- */
+// Define el molde para crear productos del catalogo
 public class Producto {
 
     private int     idProducto;
@@ -12,7 +9,7 @@ public class Producto {
     private String  beneficios;
     private double  precioActual;
     private String  rutaImagen;
-    private boolean disponibilidad;   // almacenado en BD como 1/0
+    private boolean disponibilidad; // Guarda si el producto se muestra en el PDF
     private int     stockTerminado;
 
     public Producto(int idProducto, int fkCategoria, String nombre,

@@ -1,6 +1,6 @@
 package com.catalogos;
 
-/** Representa una categoría que agrupa productos del catálogo. */
+// Define la clase Categoria que sirve para agrupar los productos
 public class Categoria {
 
     private int    idCategoria;

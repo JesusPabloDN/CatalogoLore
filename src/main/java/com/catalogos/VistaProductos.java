@@ -13,11 +13,7 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Módulo de gestión de productos.
- * Permite listar, agregar, editar y eliminar productos,
- * con selección de imagen y asignación de categoría.
- */
+// Pantalla para administrar a los productos
 public class VistaProductos {
 
     private final Stage             stage;
@@ -49,7 +45,7 @@ public class VistaProductos {
 
         HBox encabezado = encabezado("PRODUCTOS");
 
-        // Tabla
+        // Crea la tabla
         tabla = new TableView<>();
         agregarColumna("Nombre",      p -> p.getNombre());
         agregarColumna("Precio",      p -> String.format("$%.2f", p.getPrecioActual()));
@@ -57,12 +53,12 @@ public class VistaProductos {
         agregarColumna("Stock",       p -> String.valueOf(p.getStockTerminado()));
         tabla.setPrefHeight(250);
 
-        // Rellena formulario al seleccionar fila
+        // Muestra la informacion al hacer clic en un producto
         tabla.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (sel != null) rellenarFormulario(sel);
         });
 
-        // Formulario
+        // Cuadros de texto
         txtNombre     = campo("txt-nombre-prod",   "Nombre del producto");
         txtPrecio     = campo("txt-precio-prod",   "Precio (ej. 45.50)");
         txtBeneficios = campo("txt-beneficios",    "Beneficios / descripción");
@@ -116,7 +112,7 @@ public class VistaProductos {
         return contenedor;
     }
 
-    // Acciones CRUD
+    // --- Funciones de los botones ---
     private void accionAgregar() {
         try {
             Producto p = leerFormulario(0);
@@ -156,7 +152,7 @@ public class VistaProductos {
         if (archivo != null) txtImagen.setText(archivo.getAbsolutePath());
     }
 
-    // Helpers
+    // --- Funciones de ayuda ---
     private Producto leerFormulario(int id) {
         Categoria cat = cbCategoria.getSelectionModel().getSelectedItem();
         int idCat = (cat != null) ? cat.getIdCategoria() : 0;
@@ -197,7 +193,6 @@ public class VistaProductos {
         lblMensaje.setStyle(esError ? "-fx-text-fill:#FF2600;" : "-fx-text-fill:#007700;");
     }
 
-    @SuppressWarnings("unchecked")
     private void agregarColumna(String titulo, java.util.function.Function<Producto, String> fn) {
         TableColumn<Producto, String> col = new TableColumn<>(titulo);
         col.setCellValueFactory(c ->

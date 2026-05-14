@@ -11,10 +11,7 @@ import javafx.stage.Stage;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Módulo de gestión de ingredientes (insumos por producto).
- * Permite asociar insumos a productos con su cantidad necesaria por unidad fabricada.
- */
+// Pantalla para armar las recetas de los productos
 public class VistaIngredientes {
 
     private final Stage              stage;
@@ -27,7 +24,7 @@ public class VistaIngredientes {
     private ComboBox<Producto>         cbProducto;
     private ComboBox<Insumo>           cbInsumo;
     private TextField                  txtCantidad;
-    private TableView<ProductoInsumo>  tabla;
+    private TableView<String[]>        tabla;   // [fk_insumo, "nombre (unidad)", cantidad]
     private Label                      lblMensaje;
 
     public VistaIngredientes(Stage stage, InterfazPrincipal hub) throws SQLException {
@@ -53,7 +50,7 @@ public class VistaIngredientes {
         cbProducto.setPromptText("Selecciona producto...");
         cbProducto.setMaxWidth(Double.MAX_VALUE);
 
-        // Al cambiar producto, carga su lista de ingredientes
+        // Muestra los ingredientes cuando se elige un producto
         cbProducto.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (sel != null) {
                 try { cargarTabla(sel.getIdProducto()); }
@@ -70,17 +67,19 @@ public class VistaIngredientes {
         txtCantidad.setId("txt-cantidad-ing");
         txtCantidad.setPromptText("Cantidad necesaria por unidad");
 
-        // Tabla de ingredientes del producto seleccionado
+        // Tabla que muestra los ingredientes
         tabla = new TableView<>();
-        TableColumn<ProductoInsumo, String> colInsumo = new TableColumn<>("Insumo ID");
+        TableColumn<String[], String> colInsumo = new TableColumn<>("Insumo");
         colInsumo.setCellValueFactory(c ->
-                new javafx.beans.property.SimpleStringProperty(
-                        String.valueOf(c.getValue().getFkInsumo())));
-        TableColumn<ProductoInsumo, String> colCant = new TableColumn<>("Cantidad");
+                new javafx.beans.property.SimpleStringProperty(c.getValue()[1]));
+        colInsumo.setPrefWidth(220);
+        colInsumo.setMinWidth(220);
+        TableColumn<String[], String> colCant = new TableColumn<>("Cantidad");
         colCant.setCellValueFactory(c ->
-                new javafx.beans.property.SimpleStringProperty(
-                        String.valueOf(c.getValue().getCantidadNecesaria())));
-        tabla.getColumns().addAll(colInsumo, colCant);
+                new javafx.beans.property.SimpleStringProperty(c.getValue()[2]));
+        colCant.setPrefWidth(120);
+        tabla.getColumns().add(colInsumo);
+        tabla.getColumns().add(colCant);
         tabla.setPrefHeight(200);
 
         lblMensaje = new Label();
@@ -127,11 +126,12 @@ public class VistaIngredientes {
     }
 
     private void accionEliminar() {
-        Producto p = cbProducto.getSelectionModel().getSelectedItem();
-        ProductoInsumo sel = tabla.getSelectionModel().getSelectedItem();
+        Producto p   = cbProducto.getSelectionModel().getSelectedItem();
+        String[] sel = tabla.getSelectionModel().getSelectedItem();
         if (p == null || sel == null) { mostrar("Selecciona producto e ingrediente.", true); return; }
         try {
-            gestor.eliminar(p.getIdProducto(), sel.getFkInsumo());
+            int idInsumo = Integer.parseInt(sel[0]);  // toma el id del insumo
+            gestor.eliminar(p.getIdProducto(), idInsumo);
             mostrar("Ingrediente eliminado.", false);
             cargarTabla(p.getIdProducto());
         } catch (Exception ex) {
@@ -145,7 +145,7 @@ public class VistaIngredientes {
     }
 
     private void cargarTabla(int idProducto) throws SQLException {
-        List<ProductoInsumo> lista = gestor.listarPorProducto(idProducto);
+        List<String[]> lista = gestor.listarPorProductoConNombre(idProducto);
         tabla.setItems(FXCollections.observableArrayList(lista));
     }
 

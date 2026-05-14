@@ -10,10 +10,7 @@ import javafx.stage.Stage;
 
 import java.sql.SQLException;
 
-/**
- * Módulo de control de stock terminado.
- * Permite seleccionar un producto e incrementar sus unidades listas.
- */
+// Pantalla para registrar productos terminados
 public class VistaStock {
 
     private final Stage             stage;
@@ -50,7 +47,7 @@ public class VistaStock {
         lblStockActual = new Label("Stock actual: —");
         lblStockActual.getStyleClass().add("subtitulo");
 
-        // Al cambiar producto, muestra el stock actual
+        // Muestra el stock del producto elegido
         cbProducto.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (sel != null) {
                 lblStockActual.setText("Stock actual: " + sel.getStockTerminado() + " unidades");
@@ -89,7 +86,7 @@ public class VistaStock {
             mostrar("Stock actualizado correctamente.", false);
             txtUnidades.clear();
             cargarProductos();
-            // Refresca el label del stock
+            // Limpia el texto del stock
             cbProducto.getSelectionModel().clearSelection();
             lblStockActual.setText("Stock actual: —");
         } catch (NumberFormatException e) {

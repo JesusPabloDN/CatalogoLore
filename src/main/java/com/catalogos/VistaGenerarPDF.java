@@ -11,10 +11,7 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.time.LocalDate;
 
-/**
- * Módulo para generar el catálogo en formato PDF.
- * El usuario elige la carpeta destino; el archivo se nombra automáticamente.
- */
+// Pantalla para exportar el catalogo a PDF
 public class VistaGenerarPDF {
 
     private final Stage             stage;
@@ -83,7 +80,7 @@ public class VistaGenerarPDF {
         if (carpeta.isEmpty()) {
             mostrar("Selecciona la carpeta de destino primero.", true); return;
         }
-        // Nombre automático: catalogo_YYYY-MM-DD.pdf
+        // Crea el nombre del archivo usando la fecha de hoy
         String nombreArchivo = "catalogo_" + LocalDate.now() + ".pdf";
         String rutaCompleta  = carpeta + File.separator + nombreArchivo;
 

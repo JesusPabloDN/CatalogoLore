@@ -1,10 +1,6 @@
 package com.catalogos;
 
-/**
- * Representa una orden de venta.
- * fechaPedido se almacena en formato ISO 8601 (YYYY-MM-DD).
- * estatus solo puede ser "Pendiente" o "Entregado".
- */
+// Define la clase Pedido para registrar las ordenes de venta
 public class Pedido {
 
     private int    idPedido;

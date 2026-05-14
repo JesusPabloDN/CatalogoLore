@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/** CRUD completo para las tablas PEDIDO y DETALLE_PEDIDO. */
+// Controla el guardado y consulta de Pedidos en la base de datos
 public class PedidoDAO {
 
     private final Connection conn;
@@ -13,13 +13,9 @@ public class PedidoDAO {
         this.conn = ConexionBD.getInstance().getConexion();
     }
 
-    // -------------------------------------------------------------------------
-    // Operaciones sobre PEDIDO
+    // --- Operaciones sobre PEDIDO ---
 
-    /**
-     * Inserta el encabezado del pedido y su detalle en una sola transacción.
-     * Retorna el id generado para el pedido.
-     */
+    // Guarda un nuevo pedido junto con todos sus productos
     public int insertar(Pedido pedido, List<DetallePedido> detalle) throws SQLException {
         conn.setAutoCommit(false);
         try {
@@ -38,21 +34,71 @@ public class PedidoDAO {
         }
     }
 
-    /** Devuelve todos los pedidos ordenados por fecha descendente. */
+    // Obtiene una lista de los pedidos mostrando el nombre del cliente
+    public List<String[]> obtenerTodosConNombre() throws SQLException {
+        List<String[]> lista = new ArrayList<>();
+        String sql = "SELECT p.id_pedido, c.nombre_completo, p.fecha_pedido, p.estatus "
+                   + "FROM PEDIDO p "
+                   + "JOIN CLIENTE c ON p.fk_cliente = c.id_cliente "
+                   + "ORDER BY p.fecha_pedido DESC";
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                lista.add(new String[]{
+                    String.valueOf(rs.getInt("id_pedido")),
+                    rs.getString("nombre_completo"),
+                    rs.getString("fecha_pedido"),
+                    rs.getString("estatus")
+                });
+            }
+        }
+        return lista;
+    }
+
+    // Obtiene una lista que junta la informacion del pedido y de sus productos
+    public List<String[]> obtenerTodosFlattenado() throws SQLException {
+        List<String[]> lista = new ArrayList<>();
+        String sql = "SELECT p.id_pedido, c.nombre_completo, p.fecha_pedido, p.estatus, "
+                   + "       pr.nombre, dp.cantidad, dp.precio_unitario, "
+                   + "       (dp.cantidad * dp.precio_unitario) AS subtotal "
+                   + "FROM PEDIDO p "
+                   + "JOIN CLIENTE c  ON p.fk_cliente    = c.id_cliente "
+                   + "JOIN DETALLE_PEDIDO dp ON p.id_pedido   = dp.fk_pedido "
+                   + "JOIN PRODUCTO pr ON dp.fk_producto  = pr.id_producto "
+                   + "ORDER BY p.id_pedido DESC";
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                lista.add(new String[]{
+                    String.valueOf(rs.getInt("id_pedido")),
+                    rs.getString("nombre_completo"),
+                    rs.getString("fecha_pedido"),
+                    rs.getString("estatus"),
+                    rs.getString("nombre"),
+                    String.valueOf(rs.getInt("cantidad")),
+                    String.format("$%.2f", rs.getDouble("precio_unitario")),
+                    String.format("$%.2f", rs.getDouble("subtotal"))
+                });
+            }
+        }
+        return lista;
+    }
+
+    // Obtiene todos los pedidos ordenados de mas reciente a mas antiguo
     public List<Pedido> obtenerTodos() throws SQLException {
         String sql = "SELECT id_pedido, fk_cliente, fecha_pedido, estatus "
                    + "FROM PEDIDO ORDER BY fecha_pedido DESC";
         return ejecutarConsulta(sql);
     }
 
-    /** Filtra pedidos de un cliente específico. */
+    // Busca todos los pedidos que pertenecen a un cliente
     public List<Pedido> obtenerPorCliente(int idCliente) throws SQLException {
         String sql = "SELECT id_pedido, fk_cliente, fecha_pedido, estatus "
                    + "FROM PEDIDO WHERE fk_cliente = ? ORDER BY fecha_pedido DESC";
         return ejecutarConsultaConParam(sql, idCliente);
     }
 
-    /** Filtra pedidos por estatus ("Pendiente" o "Entregado"). */
+    // Busca los pedidos segun su estado actual
     public List<Pedido> obtenerPorEstatus(String estatus) throws SQLException {
         List<Pedido> lista = new ArrayList<>();
         String sql = "SELECT id_pedido, fk_cliente, fecha_pedido, estatus "
@@ -66,7 +112,7 @@ public class PedidoDAO {
         return lista;
     }
 
-    /** Busca un pedido por id; retorna null si no existe. */
+    // Busca un pedido utilizando su identificador
     public Pedido obtenerPorId(int id) throws SQLException {
         String sql = "SELECT id_pedido, fk_cliente, fecha_pedido, estatus "
                    + "FROM PEDIDO WHERE id_pedido = ?";
@@ -74,7 +120,7 @@ public class PedidoDAO {
         return lista.isEmpty() ? null : lista.get(0);
     }
 
-    /** Actualiza únicamente el estatus del pedido. */
+    // Modifica el estado de un pedido
     public void actualizarEstatus(int idPedido, String nuevoEstatus) throws SQLException {
         String sql = "UPDATE PEDIDO SET estatus = ? WHERE id_pedido = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -84,7 +130,7 @@ public class PedidoDAO {
         }
     }
 
-    /** Elimina un pedido y su detalle (CASCADE en BD). */
+    // Borra un pedido completo segun su identificador
     public void eliminar(int id) throws SQLException {
         String sql = "DELETE FROM PEDIDO WHERE id_pedido = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -93,10 +139,9 @@ public class PedidoDAO {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Operaciones sobre DETALLE_PEDIDO
+    // --- Operaciones sobre DETALLE_PEDIDO ---
 
-    /** Devuelve todos los renglones de un pedido dado. */
+    // Obtiene todos los productos de un pedido especifico
     public List<DetallePedido> obtenerDetalle(int idPedido) throws SQLException {
         List<DetallePedido> lista = new ArrayList<>();
         String sql = "SELECT fk_pedido, fk_producto, cantidad, precio_unitario "
@@ -117,8 +162,32 @@ public class PedidoDAO {
         return lista;
     }
 
-    // -------------------------------------------------------------------------
-    // Métodos privados de apoyo
+    // Obtiene los productos de un pedido mostrando el nombre de cada uno
+    public List<String[]> obtenerDetalleConNombre(int idPedido) throws SQLException {
+        List<String[]> lista = new ArrayList<>();
+        String sql = "SELECT pr.nombre, dp.cantidad, dp.precio_unitario "
+                   + "FROM DETALLE_PEDIDO dp "
+                   + "JOIN PRODUCTO pr ON dp.fk_producto = pr.id_producto "
+                   + "WHERE dp.fk_pedido = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idPedido);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    double precio = rs.getDouble("precio_unitario");
+                    int    cant   = rs.getInt("cantidad");
+                    lista.add(new String[]{
+                        rs.getString("nombre"),
+                        String.valueOf(cant),
+                        String.format("$%.2f", precio),
+                        String.format("$%.2f", precio * cant)
+                    });
+                }
+            }
+        }
+        return lista;
+    }
+
+    // --- Metodos auxiliares internos ---
 
     private int insertarEncabezado(Pedido pedido) throws SQLException {
         String sql = "INSERT INTO PEDIDO (fk_cliente, fecha_pedido, estatus) VALUES (?, ?, ?)";

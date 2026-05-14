@@ -1,11 +1,11 @@
 package com.catalogos;
 
-/** Representa un cliente frecuente del negocio. */
+// Define la estructura de un Cliente para guardar sus datos
 public class Cliente {
 
     private int    idCliente;
     private String nombreCompleto;
-    private String telefono;           // debe tener exactamente 10 dígitos (validar en gestor)
+    private String telefono; // Guarda el telefono del cliente
     private String direccionEntrega;
 
     public Cliente(int idCliente, String nombreCompleto,

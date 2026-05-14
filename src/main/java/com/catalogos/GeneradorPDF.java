@@ -15,14 +15,10 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Genera el catálogo PDF con los productos disponibles.
- * Usa los colores de la paleta del negocio y organiza los productos por categoría.
- */
+// Se encarga de crear el archivo PDF del catalogo
 public class GeneradorPDF {
 
-    // Paleta de colores del negocio
-    private static final DeviceRgb COLOR_FONDO    = new DeviceRgb(0xFE, 0xD1, 0x6D);
+    // Colores que se van a usar en el PDF
     private static final DeviceRgb COLOR_ACENTO   = new DeviceRgb(0xFF, 0xA1, 0x00);
     private static final DeviceRgb COLOR_BORDE    = new DeviceRgb(0x75, 0x44, 0x05);
     private static final DeviceRgb COLOR_TEXTO    = new DeviceRgb(0x00, 0x00, 0x00);
@@ -37,14 +33,7 @@ public class GeneradorPDF {
         this.categoriaDAO     = new CategoriaDAO();
     }
 
-    /**
-     * Genera el PDF del catálogo en la ruta indicada.
-     * Solo incluye productos con disponibilidad = true.
-     *
-     * @param rutaDestino Ruta absoluta del archivo PDF a crear.
-     * @throws IOException  Si no se puede escribir el archivo.
-     * @throws SQLException Si falla la consulta a la BD.
-     */
+    // Crea el PDF en la ruta que se le indique
     public void generar(String rutaDestino) throws IOException, SQLException {
 
         DatosCatalogo datos     = datosCatalogoDAO.obtener();
@@ -55,10 +44,10 @@ public class GeneradorPDF {
              PdfDocument pdf    = new PdfDocument(writer);
              Document documento = new Document(pdf)) {
 
-            // Portada: nombre y descripción del negocio
+            // Coloca el titulo del negocio al principio
             agregarPortada(documento, datos);
 
-            // Sección por cada categoría con sus productos
+            // Agrega los productos separados por su categoria
             for (Categoria cat : cats) {
                 List<Producto> porCategoria = productos.stream()
                     .filter(p -> p.getFkCategoria() == cat.getIdCategoria())
@@ -68,16 +57,16 @@ public class GeneradorPDF {
                 }
             }
 
-            // Pie de contacto al final del documento
+            // Coloca el telefono al final de la hoja
             agregarPieContacto(documento, datos);
         }
     }
 
-    // -------------------------------------------------------------------------
+    // --- Metodos internos para armar el PDF ---
 
-    /** Agrega la portada con el nombre del negocio y su descripción. */
+    // Dibuja el titulo principal del PDF
     private void agregarPortada(Document doc, DatosCatalogo datos) {
-        // Título principal centrado
+        // Titulo en grande
         Paragraph titulo = new Paragraph(datos.getNombreNegocio())
                 .setFontSize(28)
                 .setBold()
@@ -86,7 +75,7 @@ public class GeneradorPDF {
                 .setMarginBottom(10);
         doc.add(titulo);
 
-        // Descripción del negocio (opcional)
+        // Texto con la descripcion debajo del titulo
         if (datos.getDescripcion() != null && !datos.getDescripcion().isBlank()) {
             Paragraph desc = new Paragraph(datos.getDescripcion())
                     .setFontSize(13)
@@ -102,10 +91,10 @@ public class GeneradorPDF {
                 .setMarginBottom(20));
     }
 
-    /** Agrega el encabezado de categoría y la cuadrícula de productos. */
+    // Dibuja el titulo de la categoria y la lista de sus productos
     private void agregarSeccionCategoria(Document doc, Categoria cat,
                                          List<Producto> productos) {
-        // Encabezado de la categoría
+        // Titulo de la categoria
         Paragraph encabezado = new Paragraph(cat.getNombre().toUpperCase())
                 .setFontSize(16)
                 .setBold()
@@ -114,7 +103,7 @@ public class GeneradorPDF {
                 .setMarginBottom(10);
         doc.add(encabezado);
 
-        // Tabla de 2 columnas para los productos
+        // Crea una tabla de dos cuadros
         Table tabla = new Table(UnitValue.createPercentArray(new float[]{1, 1}))
                 .useAllAvailableWidth()
                 .setMarginBottom(20);
@@ -122,7 +111,7 @@ public class GeneradorPDF {
         for (Producto p : productos) {
             tabla.addCell(crearCeldaProducto(p));
         }
-        // Si el número de productos es impar, agrega una celda vacía para cuadrar la tabla
+        // Agrega un cuadro vacio si sobra espacio
         if (productos.size() % 2 != 0) {
             tabla.addCell(new Cell().setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
         }
@@ -130,14 +119,14 @@ public class GeneradorPDF {
         doc.add(tabla);
     }
 
-    /** Crea la celda visual de un producto con imagen, nombre, precio y beneficios. */
+    // Crea el cuadro con la informacion de un producto
     private Cell crearCeldaProducto(Producto p) {
         Cell celda = new Cell()
                 .setBackgroundColor(new DeviceRgb(0xFF, 0xEA, 0xAD))
                 .setBorder(new SolidBorder(COLOR_BORDE, 1.5f))  // iText 7: borde con SolidBorder
                 .setPadding(10);
 
-        // Imagen del producto (si la ruta existe)
+        // Pone la imagen
         if (p.getRutaImagen() != null && new File(p.getRutaImagen()).exists()) {
             try {
                 Image img = new Image(ImageDataFactory.create(p.getRutaImagen()))
@@ -146,24 +135,24 @@ public class GeneradorPDF {
                         .setMarginBottom(6);
                 celda.add(img);
             } catch (Exception ignored) {
-                // Si la imagen falla, continúa sin ella
+                // Si no se puede poner la imagen se ignora
             }
         }
 
-        // Nombre del producto
+        // Pone el nombre
         celda.add(new Paragraph(p.getNombre())
                 .setBold()
                 .setFontSize(13)
                 .setFontColor(COLOR_BORDE)
                 .setMarginBottom(4));
 
-        // Precio
+        // Pone el precio
         celda.add(new Paragraph(String.format("$%.2f", p.getPrecioActual()))
                 .setFontSize(12)
                 .setFontColor(COLOR_TEXTO)
                 .setMarginBottom(4));
 
-        // Beneficios (opcional)
+        // Pone los beneficios
         if (p.getBeneficios() != null && !p.getBeneficios().isBlank()) {
             celda.add(new Paragraph(p.getBeneficios())
                     .setFontSize(10)
@@ -174,7 +163,7 @@ public class GeneradorPDF {
         return celda;
     }
 
-    /** Agrega el teléfono de contacto al final del documento. */
+    // Dibuja el numero de telefono al final
     private void agregarPieContacto(Document doc, DatosCatalogo datos) {
         doc.add(new LineSeparator(
                 new com.itextpdf.kernel.pdf.canvas.draw.SolidLine())

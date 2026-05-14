@@ -3,10 +3,7 @@ package com.catalogos;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Gestiona la lógica de negocio para insumos (materia prima).
- * Valida datos antes de delegar al DAO.
- */
+// Revisa los datos de la materia prima antes de guardarla
 public class GestorInsumo {
 
     private final InsumoDAO dao;
@@ -15,28 +12,20 @@ public class GestorInsumo {
         this.dao = new InsumoDAO();
     }
 
-    /**
-     * Registra un insumo nuevo tras validar:
-     * - Nombre no vacío.
-     * - Stock inicial >= 0.
-     * - Unidad de medida no vacía.
-     */
+    // Revisa los datos y guarda un nuevo insumo
     public void agregar(String nombre, double stockInicial, String unidadMedida) throws SQLException {
         validar(nombre, stockInicial, unidadMedida);
         Insumo insumo = new Insumo(0, nombre.trim(), stockInicial, unidadMedida.trim());
         dao.insertar(insumo);
     }
 
-    /** Actualiza los datos de un insumo existente (mismas validaciones). */
+    // Revisa los datos y modifica un insumo
     public void actualizar(Insumo insumo) throws SQLException {
         validar(insumo.getNombre(), insumo.getStockActual(), insumo.getUnidadMedida());
         dao.actualizar(insumo);
     }
 
-    /**
-     * Incrementa el stock de un insumo en la cantidad indicada.
-     * La cantidad a agregar debe ser > 0.
-     */
+    // Le suma una cantidad al stock actual del insumo
     public void agregarStock(int idInsumo, double cantidad) throws SQLException {
         if (cantidad <= 0) throw new IllegalArgumentException("La cantidad debe ser mayor a 0.");
         Insumo insumo = dao.obtenerPorId(idInsumo);
@@ -45,7 +34,7 @@ public class GestorInsumo {
         dao.actualizar(insumo);
     }
 
-    /** Elimina un insumo. Sus recetas asociadas se borran por CASCADE en la BD. */
+    // Borra un insumo por completo
     public void eliminar(int idInsumo) throws SQLException {
         dao.eliminar(idInsumo);
     }
@@ -53,7 +42,7 @@ public class GestorInsumo {
     public List<Insumo> listarTodos()      throws SQLException { return dao.obtenerTodos(); }
     public Insumo       obtenerPorId(int id) throws SQLException { return dao.obtenerPorId(id); }
 
-    // Validaciones básicas de negocio
+    // Revisa que el nombre, el stock y la medida sean correctos
     private void validar(String nombre, double stock, String unidad) {
         if (nombre == null || nombre.isBlank()) {
             throw new IllegalArgumentException("El nombre del insumo no puede estar vacío.");

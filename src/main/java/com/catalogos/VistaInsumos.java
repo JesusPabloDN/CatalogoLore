@@ -10,10 +10,7 @@ import javafx.stage.Stage;
 
 import java.sql.SQLException;
 
-/**
- * Módulo de gestión de insumos (materia prima).
- * Permite listar, agregar, editar y eliminar insumos del inventario.
- */
+// Pantalla para administrar la materia prima
 public class VistaInsumos {
 
     private final Stage             stage;
@@ -130,7 +127,6 @@ public class VistaInsumos {
         lblMensaje.setStyle(esError ? "-fx-text-fill:#FF2600;" : "-fx-text-fill:#007700;");
     }
 
-    @SuppressWarnings("unchecked")
     private void agregarColumna(String titulo, java.util.function.Function<Insumo, String> fn) {
         TableColumn<Insumo, String> col = new TableColumn<>(titulo);
         col.setCellValueFactory(c ->

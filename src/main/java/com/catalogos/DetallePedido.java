@@ -1,10 +1,6 @@
 package com.catalogos;
 
-/**
- * Representa un renglón del pedido: un producto y su cantidad.
- * precioUnitario captura el precio al momento del pedido (precio histórico);
- * no cambia si el producto se actualiza después.
- */
+// Define la clase que guarda cada renglon de un pedido con su producto y cantidad
 public class DetallePedido {
 
     private int    fkPedido;
@@ -29,6 +25,6 @@ public class DetallePedido {
     public void setCantidad(int cantidad)            { this.cantidad       = cantidad; }
     public void setPrecioUnitario(double precio)     { this.precioUnitario = precio; }
 
-    /** Subtotal del renglón. */
+    // Calcula el subtotal multiplicando la cantidad por el precio
     public double getSubtotal() { return cantidad * precioUnitario; }
 }

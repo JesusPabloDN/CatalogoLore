@@ -10,22 +10,18 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-/**
- * Singleton que gestiona la única conexión a la base de datos SQLite.
- * Al inicializarse: crea el directorio, conecta con el archivo .db,
- * activa llaves foráneas y ejecuta el DDL para crear las tablas si no existen.
- */
+// Clase que controla la conexion a la base de datos de manera unica
 public class ConexionBD {
 
     private static ConexionBD instancia;
     private Connection conexion;
 
-    // Ruta donde se almacenará el archivo .db en el equipo del usuario
+    // Indica la ruta donde se guardara la base de datos
     private static final String DIRECTORIO_APP =
             System.getProperty("user.home") + "/AppData/Local/CatalogosArtesanales/";
     private static final String NOMBRE_BD = "catalogo_artesanal.db";
 
-    // Constructor privado: flujo de inicialización completo
+    // Inicia la conexion y crea las tablas
     private ConexionBD() throws SQLException {
         crearDirectorioSiNoExiste();
         conectar();
@@ -33,7 +29,7 @@ public class ConexionBD {
         ejecutarDDL();
     }
 
-    /** Devuelve la instancia única; la crea si aún no existe o si la conexión se cerró. */
+    // Entrega la conexion activa de la base de datos
     public static ConexionBD getInstance() throws SQLException {
         if (instancia == null || instancia.conexion.isClosed()) {
             instancia = new ConexionBD();
@@ -41,14 +37,14 @@ public class ConexionBD {
         return instancia;
     }
 
-    /** Retorna la conexión activa para uso exclusivo de los DAO. */
+    // Devuelve la conexion actual
     public Connection getConexion() {
         return conexion;
     }
 
     // -------------------------------------------------------------------------
 
-    /** Crea el directorio de datos de la aplicación si todavía no existe. */
+    // Crea la carpeta para guardar la base de datos si no existe
     private void crearDirectorioSiNoExiste() {
         try {
             Files.createDirectories(Paths.get(DIRECTORIO_APP));
@@ -58,23 +54,20 @@ public class ConexionBD {
         }
     }
 
-    /** Abre la conexión JDBC con el archivo SQLite en la ruta de la aplicación. */
+    // Se conecta con el archivo de la base de datos
     private void conectar() throws SQLException {
         String url = "jdbc:sqlite:" + DIRECTORIO_APP + NOMBRE_BD;
         conexion = DriverManager.getConnection(url);
     }
 
-    /** Activa la verificación de integridad referencial (desactivada por defecto en SQLite). */
+    // Activa la revision de llaves foraneas en la base de datos
     private void activarLlavesForaneas() throws SQLException {
         try (Statement stmt = conexion.createStatement()) {
             stmt.execute("PRAGMA foreign_keys = ON;");
         }
     }
 
-    /**
-     * Lee el script DDL desde el classpath y lo ejecuta sentencia por sentencia.
-     * Gracias al IF NOT EXISTS, es seguro llamarlo en cada inicio de la aplicación.
-     */
+    // Ejecuta el archivo que crea todas las tablas de la base de datos
     private void ejecutarDDL() throws SQLException {
         try (InputStream is = getClass().getResourceAsStream("/db/catalogo_lore_ddl.sql")) {
 
@@ -108,7 +101,7 @@ public class ConexionBD {
         }
     }
 
-    /** Cierra la conexión al apagar la aplicación. Llamar desde Main.stop(). */
+    // Cierra la base de datos cuando se cierra el programa
     public void cerrar() {
         if (conexion != null) {
             try {

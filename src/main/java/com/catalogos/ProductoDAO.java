@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/** CRUD completo para la tabla PRODUCTO. */
+// Controla el guardado y consulta de Productos en la base de datos
 public class ProductoDAO {
 
     private final Connection conn;
@@ -13,7 +13,7 @@ public class ProductoDAO {
         this.conn = ConexionBD.getInstance().getConexion();
     }
 
-    /** Inserta un producto y asigna el id generado al objeto. */
+    // Guarda un nuevo producto
     public void insertar(Producto p) throws SQLException {
         String sql = "INSERT INTO PRODUCTO "
                    + "(fk_categoria, nombre, beneficios, precio_actual, ruta_imagen, "
@@ -34,32 +34,32 @@ public class ProductoDAO {
         }
     }
 
-    /** Devuelve todos los productos ordenados por nombre. */
+    // Obtiene una lista con todos los productos
     public List<Producto> obtenerTodos() throws SQLException {
         String sql = "SELECT * FROM PRODUCTO ORDER BY nombre";
         return ejecutarConsulta(sql);
     }
 
-    /** Devuelve los productos de una categoría específica. */
+    // Busca los productos que pertenecen a una categoria
     public List<Producto> obtenerPorCategoria(int idCategoria) throws SQLException {
         String sql = "SELECT * FROM PRODUCTO WHERE fk_categoria = ? ORDER BY nombre";
         return ejecutarConsultaConParam(sql, idCategoria);
     }
 
-    /** Devuelve solo los productos marcados como disponibles (para generar el PDF). */
+    // Busca los productos que estan marcados para mostrarse
     public List<Producto> obtenerDisponibles() throws SQLException {
         String sql = "SELECT * FROM PRODUCTO WHERE disponibilidad = 1 ORDER BY nombre";
         return ejecutarConsulta(sql);
     }
 
-    /** Busca un producto por id; retorna null si no existe. */
+    // Busca un producto utilizando su identificador
     public Producto obtenerPorId(int id) throws SQLException {
         String sql = "SELECT * FROM PRODUCTO WHERE id_producto = ?";
         List<Producto> lista = ejecutarConsultaConParam(sql, id);
         return lista.isEmpty() ? null : lista.get(0);
     }
 
-    /** Actualiza todos los campos de un producto existente. */
+    // Modifica todos los datos de un producto
     public void actualizar(Producto p) throws SQLException {
         String sql = "UPDATE PRODUCTO SET fk_categoria = ?, nombre = ?, beneficios = ?, "
                    + "precio_actual = ?, ruta_imagen = ?, disponibilidad = ?, "
@@ -77,7 +77,7 @@ public class ProductoDAO {
         }
     }
 
-    /** Elimina un producto por id. Falla si tiene pedidos asociados (RESTRICT en BD). */
+    // Borra un producto segun su identificador
     public void eliminar(int id) throws SQLException {
         String sql = "DELETE FROM PRODUCTO WHERE id_producto = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -86,8 +86,7 @@ public class ProductoDAO {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Métodos privados de apoyo para evitar duplicación de mapeo ResultSet→Producto
+    // --- Metodos auxiliares internos ---
 
     private List<Producto> ejecutarConsulta(String sql) throws SQLException {
         List<Producto> lista = new ArrayList<>();
@@ -109,7 +108,7 @@ public class ProductoDAO {
         return lista;
     }
 
-    /** Convierte una fila del ResultSet en un objeto Producto. */
+    // Transforma los datos de la base de datos en un Producto
     private Producto mapear(ResultSet rs) throws SQLException {
         return new Producto(
             rs.getInt("id_producto"),

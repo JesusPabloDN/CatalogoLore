@@ -3,10 +3,7 @@ package com.catalogos;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Gestiona la lógica de negocio para clientes.
- * Valida que el teléfono tenga exactamente 10 dígitos numéricos.
- */
+// Revisa que los datos del cliente sean correctos antes de guardarlos
 public class GestorCliente {
 
     private final ClienteDAO dao;
@@ -15,11 +12,7 @@ public class GestorCliente {
         this.dao = new ClienteDAO();
     }
 
-    /**
-     * Registra un cliente nuevo tras validar:
-     * - Nombre no vacío.
-     * - Teléfono con exactamente 10 dígitos numéricos.
-     */
+    // Revisa los datos y guarda un nuevo cliente
     public void agregar(String nombreCompleto, String telefono,
                         String direccionEntrega) throws SQLException {
         validar(nombreCompleto, telefono);
@@ -27,16 +20,13 @@ public class GestorCliente {
         dao.insertar(cliente);
     }
 
-    /** Actualiza los datos de un cliente existente (mismas validaciones). */
+    // Revisa los datos y modifica a un cliente
     public void actualizar(Cliente cliente) throws SQLException {
         validar(cliente.getNombreCompleto(), cliente.getTelefono());
         dao.actualizar(cliente);
     }
 
-    /**
-     * Elimina un cliente. La BD rechazará la operación si tiene
-     * pedidos asociados (RESTRICT en PEDIDO.fk_cliente).
-     */
+    // Borra a un cliente si no tiene pedidos registrados
     public void eliminar(int idCliente) throws SQLException {
         dao.eliminar(idCliente);
     }
@@ -44,7 +34,7 @@ public class GestorCliente {
     public List<Cliente> listarTodos()        throws SQLException { return dao.obtenerTodos(); }
     public Cliente       obtenerPorId(int id) throws SQLException { return dao.obtenerPorId(id); }
 
-    // Valida nombre y formato de teléfono (10 dígitos exactos)
+    // Revisa que el nombre exista y el telefono tenga 10 numeros
     private void validar(String nombre, String telefono) {
         if (nombre == null || nombre.isBlank()) {
             throw new IllegalArgumentException("El nombre del cliente no puede estar vacío.");

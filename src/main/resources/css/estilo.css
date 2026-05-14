@@ -34,7 +34,7 @@
 -------------------------------------------------- */
 .titulo {
     -fx-font-family: 'Press Start 2P';
-    -fx-font-size: 26px;
+    -fx-font-size: 104px;
     -fx-text-fill: #754405;
     -fx-wrap-text: true;
 }
@@ -111,8 +111,8 @@
     -fx-text-fill: #000000;
     -fx-text-alignment: center;
     -fx-wrap-text: true;
-    -fx-pref-width: 160px;
-    -fx-pref-height: 80px;
+    -fx-pref-width: 200px;
+    -fx-pref-height: 100px;
     -fx-cursor: hand;
 }
 

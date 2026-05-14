@@ -4,11 +4,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Gestiona la lógica de negocio para pedidos.
- * Valida el detalle antes de crear un pedido e impone las
- * reglas de transición de estatus.
- */
+// Revisa que los pedidos y sus productos esten bien antes de guardarlos
 public class GestorPedido {
 
     private final PedidoDAO    pedidoDAO;
@@ -19,13 +15,7 @@ public class GestorPedido {
         this.productoDAO = new ProductoDAO();
     }
 
-    /**
-     * Crea un pedido completo tras validar que:
-     * - El cliente existe (validación de negocio; la FK lo garantiza en BD).
-     * - El detalle no está vacío.
-     * - Cada producto existe y tiene precio >= 0.
-     * La fecha se asigna automáticamente al día actual (ISO 8601).
-     */
+    // Revisa los datos y guarda un nuevo pedido con la fecha de hoy
     public int crear(int idCliente, List<DetallePedido> detalle) throws SQLException {
         if (detalle == null || detalle.isEmpty()) {
             throw new IllegalArgumentException("El pedido debe tener al menos un producto.");
@@ -38,7 +28,7 @@ public class GestorPedido {
             if (p == null) {
                 throw new IllegalArgumentException("Producto no encontrado: " + dp.getFkProducto());
             }
-            // Captura el precio histórico al momento del pedido
+            // Guarda el precio actual del producto
             dp.setPrecioUnitario(p.getPrecioActual());
         }
 
@@ -46,10 +36,7 @@ public class GestorPedido {
         return pedidoDAO.insertar(pedido, detalle);
     }
 
-    /**
-     * Cambia el estatus de un pedido.
-     * Solo permite la transición Pendiente → Entregado.
-     */
+    // Cambia un pedido a estado Entregado
     public void marcarEntregado(int idPedido) throws SQLException {
         Pedido p = pedidoDAO.obtenerPorId(idPedido);
         if (p == null) throw new IllegalArgumentException("Pedido no encontrado: " + idPedido);
@@ -59,15 +46,18 @@ public class GestorPedido {
         pedidoDAO.actualizarEstatus(idPedido, "Entregado");
     }
 
-    /** Elimina un pedido y su detalle (CASCADE en BD). */
+    // Borra un pedido completo y sus productos
     public void eliminar(int idPedido) throws SQLException {
         pedidoDAO.eliminar(idPedido);
     }
 
-    public List<Pedido>       listarTodos()                    throws SQLException { return pedidoDAO.obtenerTodos(); }
-    public List<Pedido>       listarPorCliente(int idCliente)  throws SQLException { return pedidoDAO.obtenerPorCliente(idCliente); }
-    public List<Pedido>       listarPendientes()               throws SQLException { return pedidoDAO.obtenerPorEstatus("Pendiente"); }
-    public List<Pedido>       listarEntregados()               throws SQLException { return pedidoDAO.obtenerPorEstatus("Entregado"); }
-    public List<DetallePedido> obtenerDetalle(int idPedido)    throws SQLException { return pedidoDAO.obtenerDetalle(idPedido); }
-    public Pedido             obtenerPorId(int id)             throws SQLException { return pedidoDAO.obtenerPorId(id); }
+    public List<Pedido>        listarTodos()                    throws SQLException { return pedidoDAO.obtenerTodos(); }
+    public List<String[]>      listarConNombres()               throws SQLException { return pedidoDAO.obtenerTodosConNombre(); }
+    public List<String[]>      listarFlattenado()               throws SQLException { return pedidoDAO.obtenerTodosFlattenado(); }
+    public List<Pedido>        listarPorCliente(int idCliente)  throws SQLException { return pedidoDAO.obtenerPorCliente(idCliente); }
+    public List<Pedido>        listarPendientes()               throws SQLException { return pedidoDAO.obtenerPorEstatus("Pendiente"); }
+    public List<Pedido>        listarEntregados()               throws SQLException { return pedidoDAO.obtenerPorEstatus("Entregado"); }
+    public List<DetallePedido> obtenerDetalle(int idPedido)     throws SQLException { return pedidoDAO.obtenerDetalle(idPedido); }
+    public List<String[]>      obtenerDetalleConNombre(int id)  throws SQLException { return pedidoDAO.obtenerDetalleConNombre(id); }
+    public Pedido              obtenerPorId(int id)             throws SQLException { return pedidoDAO.obtenerPorId(id); }
 }

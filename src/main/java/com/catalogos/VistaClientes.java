@@ -10,10 +10,7 @@ import javafx.stage.Stage;
 
 import java.sql.SQLException;
 
-/**
- * Módulo de gestión de clientes.
- * Permite listar, agregar, editar y eliminar clientes frecuentes.
- */
+// Pantalla para administrar a los clientes
 public class VistaClientes {
 
     private final Stage             stage;
@@ -42,9 +39,36 @@ public class VistaClientes {
         HBox encabezado = encabezado("CLIENTES");
 
         tabla = new TableView<>();
-        agregarColumna("Nombre",    c -> c.getNombreCompleto());
-        agregarColumna("Teléfono",  c -> c.getTelefono());
-        agregarColumna("Dirección", c -> c.getDireccionEntrega() != null ? c.getDireccionEntrega() : "");
+
+        // Columna del nombre
+        TableColumn<Cliente, String> colNombre = new TableColumn<>("Nombre");
+        colNombre.setCellValueFactory(c ->
+                new javafx.beans.property.SimpleStringProperty(c.getValue().getNombreCompleto()));
+        colNombre.setPrefWidth(200);
+        colNombre.setMinWidth(150);
+        colNombre.setResizable(true);
+
+        // Columna del telefono
+        TableColumn<Cliente, String> colTel = new TableColumn<>("Teléfono");
+        colTel.setCellValueFactory(c ->
+                new javafx.beans.property.SimpleStringProperty(c.getValue().getTelefono()));
+        colTel.setPrefWidth(120);
+        colTel.setMinWidth(100);
+        colTel.setResizable(false);
+
+        // Columna de la direccion
+        TableColumn<Cliente, String> colDir = new TableColumn<>("Dirección");
+        colDir.setCellValueFactory(c ->
+                new javafx.beans.property.SimpleStringProperty(
+                        c.getValue().getDireccionEntrega() != null
+                        ? c.getValue().getDireccionEntrega() : ""));
+        colDir.setMaxWidth(Double.MAX_VALUE);
+        colDir.setResizable(true);
+
+        tabla.getColumns().add(colNombre);
+        tabla.getColumns().add(colTel);
+        tabla.getColumns().add(colDir);
+        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setPrefHeight(270);
 
         tabla.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
@@ -126,13 +150,6 @@ public class VistaClientes {
         lblMensaje.setStyle(esError ? "-fx-text-fill:#FF2600;" : "-fx-text-fill:#007700;");
     }
 
-    @SuppressWarnings("unchecked")
-    private void agregarColumna(String titulo, java.util.function.Function<Cliente, String> fn) {
-        TableColumn<Cliente, String> col = new TableColumn<>(titulo);
-        col.setCellValueFactory(c ->
-                new javafx.beans.property.SimpleStringProperty(fn.apply(c.getValue())));
-        tabla.getColumns().add(col);
-    }
 
     private HBox encabezado(String txt) {
         Label lbl = new Label(txt); lbl.getStyleClass().add("subtitulo");

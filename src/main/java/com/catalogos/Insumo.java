@@ -1,12 +1,13 @@
 package com.catalogos;
 
-/** Representa un insumo (materia prima) del inventario. */
+// Define la estructura para la materia prima del inventario
 public class Insumo {
 
     private int    idInsumo;
     private String nombre;
     private double stockActual;
-    private String unidadMedida;   // ej. "ml", "gr", "piezas"
+    private String unidadMedida; // Guarda la unidad de medida
+
 
     public Insumo(int idInsumo, String nombre, double stockActual, String unidadMedida) {
         this.idInsumo     = idInsumo;

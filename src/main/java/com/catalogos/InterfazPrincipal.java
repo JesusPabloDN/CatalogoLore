@@ -5,31 +5,19 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-/**
- * Pantalla central de la aplicación (flujo en estrella).
- * Cada botón abre el módulo correspondiente en la misma ventana.
- */
+// Pantalla del menu principal donde estan todos los botones
 public class InterfazPrincipal {
 
     private final VBox    root;
     private final Stage   stage;
 
-    // Módulos del sistema
-    private static final String[][] MODULOS = {
-        {"Categorías",       "Categorias"},
-        {"Productos",        "Productos"},
-        {"Stock",            "Stock"},
-        {"Ingredientes",     "Ingredientes"},
-        {"Datos Catálogo",   "DatosCatalogo"},
-        {"Insumos",          "Insumos"},
-        {"Clientes",         "Clientes"},
-        {"Pedidos",          "Pedidos"},
-        {"Generar PDF",      "GenerarPDF"}
-    };
+    // Espacio entre cada boton
+    private static final double GAP = 15;
 
     public InterfazPrincipal(Stage stage) {
         this.stage = stage;
@@ -43,32 +31,62 @@ public class InterfazPrincipal {
         contenedor.setAlignment(Pos.TOP_CENTER);
         contenedor.setPadding(new Insets(30));
 
-        // Título principal
+        // Titulo de arriba
         Label titulo = new Label("CATÁLOGOS DIGITALES");
         titulo.getStyleClass().add("titulo");
 
         Label subtitulo = new Label("Selecciona un módulo");
         subtitulo.getStyleClass().add("subtitulo");
 
-        // Cuadrícula 3×3 de botones de módulo
-        GridPane grid = new GridPane();
-        grid.setHgap(15);
-        grid.setVgap(15);
-        grid.setAlignment(Pos.CENTER);
+        // Primera fila de botones
+        HBox fila0 = filaBtn(
+                crearBotonModulo("Categorías",    "Categorias"),
+                crearBotonModulo("Productos",     "Productos"),
+                crearBotonModulo("Stock",         "Stock")
+        );
 
-        int col = 0, row = 0;
-        for (String[] modulo : MODULOS) {
-            Button btn = crearBotonModulo(modulo[0], modulo[1]);
-            grid.add(btn, col, row);
-            col++;
-            if (col == 3) { col = 0; row++; }
-        }
+        // Segunda fila de botones
+        HBox fila1 = filaBtn(
+                crearBotonModulo("Ingredientes",  "Ingredientes"),
+                crearBotonModulo("Insumos",       "Insumos")
+        );
 
-        contenedor.getChildren().addAll(titulo, subtitulo, grid);
+        // Deja un espacio mas grande para separar las secciones
+        Region separador = new Region();
+        separador.setPrefHeight(GAP);   // GAP extra además del spacing del VBox (=GAP)
+        // Ajuste de espacio vacio
+
+        // Tercera fila de botones
+        HBox fila2 = filaBtn(
+                crearBotonModulo("Clientes",      "Clientes"),
+                crearBotonModulo("Pedidos",       "Pedidos")
+        );
+
+        // Cuarta fila de botones
+        HBox fila3 = filaBtn(
+                crearBotonModulo("Datos Catálogo","DatosCatalogo"),
+                crearBotonModulo("Generar PDF",   "GenerarPDF")
+        );
+
+        contenedor.getChildren().addAll(
+                titulo, subtitulo,
+                fila0,
+                fila1,
+                separador,   // separacion extra
+                fila2,
+                fila3
+        );
         return contenedor;
     }
 
-    /** Crea un botón del menú principal que navega al módulo indicado. */
+    // Acomoda los botones en linea
+    private HBox filaBtn(Button... botones) {
+        HBox fila = new HBox(GAP, botones);
+        fila.setAlignment(Pos.CENTER);
+        return fila;
+    }
+
+    // Crea un boton para ir a otra pantalla
     private Button crearBotonModulo(String etiqueta, String nombreModulo) {
         Button btn = new Button(etiqueta);
         btn.getStyleClass().add("boton-menu");
@@ -77,7 +95,7 @@ public class InterfazPrincipal {
         return btn;
     }
 
-    /** Sustituye el contenido de la ventana por el módulo solicitado. */
+    // Cambia la pantalla actual por la que se eligio
     private void navegarA(String modulo) {
         try {
             Parent vista = switch (modulo) {
@@ -98,7 +116,7 @@ public class InterfazPrincipal {
         }
     }
 
-    /** Muestra un mensaje de error en la consola (se maneja en vistas con Label). */
+    // Muestra un error si falla al abrir la pantalla
     private void mostrarError(String mensaje) {
         System.err.println(mensaje);
     }

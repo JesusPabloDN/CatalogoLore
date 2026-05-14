@@ -9,10 +9,7 @@ import javafx.stage.Stage;
 
 import java.sql.SQLException;
 
-/**
- * Módulo para editar los datos generales del negocio
- * que aparecerán en la portada del catálogo PDF.
- */
+// Pantalla para editar la informacion del negocio
 public class VistaDatosCatalogo {
 
     private final Stage              stage;

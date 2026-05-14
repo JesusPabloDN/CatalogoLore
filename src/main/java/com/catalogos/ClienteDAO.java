@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/** CRUD completo para la tabla CLIENTE. */
+// Controla el guardado y consulta de Clientes en la base de datos
 public class ClienteDAO {
 
     private final Connection conn;
@@ -13,7 +13,7 @@ public class ClienteDAO {
         this.conn = ConexionBD.getInstance().getConexion();
     }
 
-    /** Inserta un cliente y asigna el id generado al objeto. */
+    // Guarda un nuevo cliente
     public void insertar(Cliente cliente) throws SQLException {
         String sql = "INSERT INTO CLIENTE (nombre_completo, telefono, direccion_entrega) "
                    + "VALUES (?, ?, ?)";
@@ -29,7 +29,7 @@ public class ClienteDAO {
         }
     }
 
-    /** Devuelve todos los clientes ordenados por nombre. */
+    // Obtiene una lista con todos los clientes
     public List<Cliente> obtenerTodos() throws SQLException {
         List<Cliente> lista = new ArrayList<>();
         String sql = "SELECT id_cliente, nombre_completo, telefono, direccion_entrega "
@@ -48,7 +48,7 @@ public class ClienteDAO {
         return lista;
     }
 
-    /** Busca un cliente por id; retorna null si no existe. */
+    // Busca un cliente utilizando su identificador
     public Cliente obtenerPorId(int id) throws SQLException {
         String sql = "SELECT id_cliente, nombre_completo, telefono, direccion_entrega "
                    + "FROM CLIENTE WHERE id_cliente = ?";
@@ -68,7 +68,7 @@ public class ClienteDAO {
         return null;
     }
 
-    /** Actualiza los datos de un cliente existente. */
+    // Modifica los datos de un cliente
     public void actualizar(Cliente cliente) throws SQLException {
         String sql = "UPDATE CLIENTE SET nombre_completo = ?, telefono = ?, "
                    + "direccion_entrega = ? WHERE id_cliente = ?";
@@ -81,7 +81,7 @@ public class ClienteDAO {
         }
     }
 
-    /** Elimina un cliente por id. Falla si tiene pedidos asociados (RESTRICT en BD). */
+    // Borra un cliente segun su identificador
     public void eliminar(int id) throws SQLException {
         String sql = "DELETE FROM CLIENTE WHERE id_cliente = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

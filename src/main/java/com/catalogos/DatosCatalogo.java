@@ -1,6 +1,6 @@
 package com.catalogos;
 
-/** Representa el único registro de configuración del negocio (id_datos = 1). */
+// Define la clase que guarda la informacion principal del negocio
 public class DatosCatalogo {
 
     private int    idDatos;

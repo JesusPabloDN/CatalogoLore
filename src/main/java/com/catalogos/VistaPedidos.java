@@ -13,10 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Módulo de gestión de pedidos.
- * Permite crear nuevos pedidos, ver el detalle y marcarlos como entregados.
- */
+// Pantalla para registrar y administrar pedidos
 public class VistaPedidos {
 
     private final Stage             stage;
@@ -26,13 +23,21 @@ public class VistaPedidos {
     private final GestorProducto    gestorProd;
     private final VBox              root;
 
-    private TableView<Pedido>       tablaPedidos;
-    private TableView<DetallePedido> tablaDetalle;
-    private ComboBox<Cliente>       cbCliente;
-    private ComboBox<Producto>      cbProducto;
-    private TextField               txtCantidad;
-    private Label                   lblMensaje;
-    private final ObservableList<DetallePedido> renglones = FXCollections.observableArrayList();
+    // Tabla general de los pedidos
+    private TableView<String[]> tablaUnificada;
+
+    // Tabla para armar un pedido nuevo antes de guardarlo
+    private final ObservableList<String[]> renglonesMostrar = FXCollections.observableArrayList();
+    // Guarda la informacion de los productos del pedido
+    private final List<DetallePedido>      renglonesReales  = new ArrayList<>();
+
+    private ComboBox<Cliente>  cbCliente;
+    private ComboBox<Producto> cbProducto;
+    private TextField          txtCantidad;
+    private Label              lblMensaje;
+
+    // Id del pedido que se le dio clic
+    private int idPedidoSeleccionado = -1;
 
     public VistaPedidos(Stage stage, InterfazPrincipal hub) throws SQLException {
         this.stage      = stage;
@@ -42,175 +47,192 @@ public class VistaPedidos {
         this.gestorProd = new GestorProducto();
         this.root       = construir();
         cargarCombos();
-        cargarPedidos();
+        cargarTablaUnificada();
     }
 
     public Parent getRoot() { return root; }
 
+    // --- Creacion de la pantalla ---
     private VBox construir() {
-        VBox contenedor = new VBox(15);
-        contenedor.setPadding(new Insets(25));
+        VBox contenedor = new VBox(14);
+        contenedor.setPadding(new Insets(22));
 
         HBox encabezado = encabezado("PEDIDOS");
 
-        // Tabla de pedidos existentes
-        tablaPedidos = new TableView<>();
-        agregarColPedido("ID",      p -> String.valueOf(p.getIdPedido()));
-        agregarColPedido("Cliente", p -> String.valueOf(p.getFkCliente()));
-        agregarColPedido("Fecha",   p -> p.getFechaPedido());
-        agregarColPedido("Estatus", p -> p.getEstatus());
-        tablaPedidos.setPrefHeight(200);
+        // Tabla principal
+        tablaUnificada = new TableView<>();
+        tablaUnificada.setPrefHeight(260);
+        tablaUnificada.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
-        // Al seleccionar un pedido, carga su detalle
-        tablaPedidos.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-            if (sel != null) {
-                try { cargarDetallePedido(sel.getIdPedido()); }
-                catch (SQLException ignored) {}
-            }
-        });
+        // Columnas de la tabla
+        tablaUnificada.getColumns().add(colStr("ID",          0,  45));
+        tablaUnificada.getColumns().add(colStr("Cliente",     1, 150));
+        tablaUnificada.getColumns().add(colStr("Fecha",       2,  90));
+        tablaUnificada.getColumns().add(colStr("Estatus",     3,  85));
+        tablaUnificada.getColumns().add(colStr("Producto",    4, 150));
+        tablaUnificada.getColumns().add(colStr("Cant.",       5,  55));
+        tablaUnificada.getColumns().add(colStr("Precio Unit.",6, 110));
+        tablaUnificada.getColumns().add(colStr("Subtotal",    7, 100));
 
-        // Tabla de detalle del pedido seleccionado
-        tablaDetalle = new TableView<>();
-        agregarColDetalle("Producto ID", d -> String.valueOf(d.getFkProducto()));
-        agregarColDetalle("Cantidad",    d -> String.valueOf(d.getCantidad()));
-        agregarColDetalle("Precio Unit.", d -> String.format("$%.2f", d.getPrecioUnitario()));
-        agregarColDetalle("Subtotal",    d -> String.format("$%.2f", d.getSubtotal()));
-        tablaDetalle.setPrefHeight(130);
+        // Guarda el ID del pedido cuando se hace clic en la tabla
+        tablaUnificada.getSelectionModel().selectedItemProperty().addListener(
+                (obs, old, sel) -> {
+                    if (sel != null) idPedidoSeleccionado = Integer.parseInt(sel[0]);
+                });
 
-        // Panel para crear un nuevo pedido
-        cbCliente = new ComboBox<>(); cbCliente.setId("cb-cliente-ped"); cbCliente.setPromptText("Cliente...");
-        cbProducto = new ComboBox<>(); cbProducto.setId("cb-prod-ped"); cbProducto.setPromptText("Producto...");
-        txtCantidad = new TextField(); txtCantidad.setId("txt-cant-ped"); txtCantidad.setPromptText("Cantidad");
-
-        lblMensaje = new Label(); lblMensaje.getStyleClass().add("error");
-
-        // Lista temporal de renglones antes de confirmar el pedido
-        TableView<DetallePedido> tablaTemp = new TableView<>(renglones);
-        TableColumn<DetallePedido, String> colT1 = new TableColumn<>("Prod.");
-        colT1.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-                String.valueOf(c.getValue().getFkProducto())));
-        TableColumn<DetallePedido, String> colT2 = new TableColumn<>("Cant.");
-        colT2.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-                String.valueOf(c.getValue().getCantidad())));
-        tablaTemp.getColumns().addAll(colT1, colT2);
+        // Tabla del nuevo pedido
+        TableView<String[]> tablaTemp = new TableView<>(renglonesMostrar);
         tablaTemp.setPrefHeight(100);
+        tablaTemp.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        // Columnas
+        tablaTemp.getColumns().add(colStr("Producto",     0, 180));
+        tablaTemp.getColumns().add(colStr("Cantidad",     1,  80));
+        tablaTemp.getColumns().add(colStr("Precio Unit.", 2, 120));
 
-        Button btnAgregarRenglon = new Button("+ Producto");
-        btnAgregarRenglon.setId("btn-add-renglon");
-        btnAgregarRenglon.setOnAction(e -> accionAgregarRenglon());
+        // Cuadros para llenar el pedido
+        cbCliente  = new ComboBox<>(); cbCliente.setId("cb-cliente-ped");
+        cbCliente.setPromptText("Cliente..."); cbCliente.setPrefWidth(200);
+        cbProducto = new ComboBox<>(); cbProducto.setId("cb-prod-ped");
+        cbProducto.setPromptText("Producto..."); cbProducto.setPrefWidth(200);
+        txtCantidad = new TextField(); txtCantidad.setId("txt-cant-ped");
+        txtCantidad.setPromptText("Cant."); txtCantidad.setPrefWidth(80);
 
-        Button btnConfirmar = new Button("Confirmar Pedido");
-        btnConfirmar.setId("btn-confirmar-ped");
-        btnConfirmar.setOnAction(e -> accionConfirmarPedido());
+        lblMensaje = new Label();
+        lblMensaje.getStyleClass().add("error");
+        lblMensaje.setWrapText(true);
 
-        Button btnEntregar = new Button("Marcar Entregado");
-        btnEntregar.setId("btn-entregar-ped");
-        btnEntregar.setOnAction(e -> accionMarcarEntregado());
-
-        Button btnEliminar = new Button("Eliminar");
+        Button btnAddRenglon = new Button("+ Agregar producto");
+        Button btnConfirmar  = new Button("Confirmar Pedido");
+        Button btnEntregar   = new Button("Marcar Entregado");
+        Button btnEliminar   = new Button("Eliminar Pedido");
         btnEliminar.getStyleClass().add("button-peligro");
-        btnEliminar.setId("btn-eliminar-ped");
-        btnEliminar.setOnAction(e -> accionEliminar());
 
-        HBox filaCombos = new HBox(10, cbCliente, cbProducto, txtCantidad, btnAgregarRenglon);
+        btnAddRenglon.setId("btn-add-renglon");
+        btnConfirmar.setId("btn-confirmar-ped");
+        btnEntregar.setId("btn-entregar-ped");
+        btnEliminar.setId("btn-eliminar-ped");
+
+        btnAddRenglon.setOnAction(e -> accionAgregarRenglon());
+        btnConfirmar.setOnAction(e  -> accionConfirmarPedido());
+        btnEntregar.setOnAction(e   -> accionMarcarEntregado());
+        btnEliminar.setOnAction(e   -> accionEliminar());
+
+        HBox filaCombos   = new HBox(10, cbCliente, cbProducto, txtCantidad, btnAddRenglon);
         filaCombos.setAlignment(Pos.CENTER_LEFT);
         HBox filaAcciones = new HBox(10, btnConfirmar, btnEntregar, btnEliminar);
+        filaAcciones.setAlignment(Pos.CENTER_LEFT);
 
         VBox panelNuevo = new VBox(8,
-                new Label("Nuevo pedido:"),
+                new Label("Nuevo pedido — selecciona cliente y agrega productos:"),
                 filaCombos,
-                new Label("Renglones:"), tablaTemp,
-                filaAcciones, lblMensaje);
+                new Label("Datos del nuevo pedido:"),
+                tablaTemp,
+                filaAcciones,
+                lblMensaje);
         panelNuevo.getStyleClass().add("panel-formulario");
 
-        contenedor.getChildren().addAll(encabezado,
-                new Label("Pedidos registrados:"), tablaPedidos,
-                new Label("Detalle del pedido seleccionado:"), tablaDetalle,
-                panelNuevo);
+        contenedor.getChildren().addAll(
+                encabezado,
+                new Label("Pedidos registrados:"),
+                tablaUnificada,
+                panelNuevo
+        );
         return contenedor;
     }
 
+    // --- Funciones de los botones ---
+
+    // Agrega un producto a la lista del pedido nuevo
     private void accionAgregarRenglon() {
         Producto p = cbProducto.getSelectionModel().getSelectedItem();
         if (p == null) { mostrar("Selecciona un producto.", true); return; }
         try {
             int cant = Integer.parseInt(txtCantidad.getText().trim());
             if (cant <= 0) throw new NumberFormatException();
-            // precio_unitario se asigna en el gestor; aquí solo se agrega como 0 temporal
-            renglones.add(new DetallePedido(0, p.getIdProducto(), cant, p.getPrecioActual()));
+
+            // Muestra los datos en la tabla
+            renglonesMostrar.add(new String[]{
+                p.getNombre(),
+                String.valueOf(cant),
+                String.format("$%.2f", p.getPrecioActual())
+            });
+            // Guarda los datos ocultos para la base de datos
+            renglonesReales.add(new DetallePedido(0, p.getIdProducto(), cant, p.getPrecioActual()));
+
             cbProducto.getSelectionModel().clearSelection();
             txtCantidad.clear();
             mostrar("", false);
-        } catch (NumberFormatException e) { mostrar("Cantidad inválida.", true); }
+        } catch (NumberFormatException e) {
+            mostrar("Ingresa una cantidad válida (número entero > 0).", true);
+        }
     }
 
     private void accionConfirmarPedido() {
         Cliente cli = cbCliente.getSelectionModel().getSelectedItem();
-        if (cli == null) { mostrar("Selecciona un cliente.", true); return; }
-        if (renglones.isEmpty()) { mostrar("Agrega al menos un producto.", true); return; }
+        if (cli == null)          { mostrar("Selecciona un cliente.", true); return; }
+        if (renglonesReales.isEmpty()) { mostrar("Agrega al menos un producto.", true); return; }
         try {
-            gestor.crear(cli.getIdCliente(), new ArrayList<>(renglones));
+            gestor.crear(cli.getIdCliente(), new ArrayList<>(renglonesReales));
             mostrar("Pedido creado correctamente.", false);
-            renglones.clear();
+            renglonesMostrar.clear();
+            renglonesReales.clear();
             cbCliente.getSelectionModel().clearSelection();
-            cargarPedidos();
-        } catch (Exception ex) { mostrar(ex.getMessage(), true); }
+            cargarTablaUnificada();
+        } catch (Exception ex) {
+            mostrar(ex.getMessage(), true);
+        }
     }
 
     private void accionMarcarEntregado() {
-        Pedido sel = tablaPedidos.getSelectionModel().getSelectedItem();
-        if (sel == null) { mostrar("Selecciona un pedido.", true); return; }
+        if (idPedidoSeleccionado < 0) { mostrar("Selecciona un pedido en la tabla.", true); return; }
         try {
-            gestor.marcarEntregado(sel.getIdPedido());
+            gestor.marcarEntregado(idPedidoSeleccionado);
             mostrar("Pedido marcado como entregado.", false);
-            cargarPedidos();
-        } catch (Exception ex) { mostrar(ex.getMessage(), true); }
+            cargarTablaUnificada();
+        } catch (Exception ex) {
+            mostrar(ex.getMessage(), true);
+        }
     }
 
     private void accionEliminar() {
-        Pedido sel = tablaPedidos.getSelectionModel().getSelectedItem();
-        if (sel == null) { mostrar("Selecciona un pedido.", true); return; }
+        if (idPedidoSeleccionado < 0) { mostrar("Selecciona un pedido en la tabla.", true); return; }
         try {
-            gestor.eliminar(sel.getIdPedido());
+            gestor.eliminar(idPedidoSeleccionado);
             mostrar("Pedido eliminado.", false);
-            tablaDetalle.getItems().clear();
-            cargarPedidos();
-        } catch (Exception ex) { mostrar(ex.getMessage(), true); }
+            idPedidoSeleccionado = -1;
+            cargarTablaUnificada();
+        } catch (Exception ex) {
+            mostrar(ex.getMessage(), true);
+        }
     }
+
+    // --- Funciones para cargar informacion ---
 
     private void cargarCombos() throws SQLException {
         cbCliente.setItems(FXCollections.observableArrayList(gestorCli.listarTodos()));
         cbProducto.setItems(FXCollections.observableArrayList(gestorProd.listarTodos()));
     }
 
-    private void cargarPedidos() throws SQLException {
-        tablaPedidos.setItems(FXCollections.observableArrayList(gestor.listarTodos()));
+    private void cargarTablaUnificada() throws SQLException {
+        List<String[]> lista = gestor.listarFlattenado();
+        tablaUnificada.setItems(FXCollections.observableArrayList(lista));
     }
 
-    private void cargarDetallePedido(int idPedido) throws SQLException {
-        List<DetallePedido> detalle = gestor.obtenerDetalle(idPedido);
-        tablaDetalle.setItems(FXCollections.observableArrayList(detalle));
+    // --- Funciones de ayuda ---
+
+    private TableColumn<String[], String> colStr(String titulo, int idx, double ancho) {
+        TableColumn<String[], String> col = new TableColumn<>(titulo);
+        col.setCellValueFactory(c ->
+                new javafx.beans.property.SimpleStringProperty(c.getValue()[idx]));
+        col.setPrefWidth(ancho);
+        col.setMinWidth(ancho);
+        col.setResizable(false);
+        return col;
     }
 
     private void mostrar(String msg, boolean esError) {
         lblMensaje.setText(msg);
         lblMensaje.setStyle(esError ? "-fx-text-fill:#FF2600;" : "-fx-text-fill:#007700;");
-    }
-
-    @SuppressWarnings("unchecked")
-    private void agregarColPedido(String titulo, java.util.function.Function<Pedido, String> fn) {
-        TableColumn<Pedido, String> col = new TableColumn<>(titulo);
-        col.setCellValueFactory(c ->
-                new javafx.beans.property.SimpleStringProperty(fn.apply(c.getValue())));
-        tablaPedidos.getColumns().add(col);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void agregarColDetalle(String titulo, java.util.function.Function<DetallePedido, String> fn) {
-        TableColumn<DetallePedido, String> col = new TableColumn<>(titulo);
-        col.setCellValueFactory(c ->
-                new javafx.beans.property.SimpleStringProperty(fn.apply(c.getValue())));
-        tablaDetalle.getColumns().add(col);
     }
 
     private HBox encabezado(String txt) {

@@ -17,11 +17,13 @@
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- Versiones centralizadas para facilitar actualizaciones -->
         <javafx.version>23</javafx.version>
         <sqlite.version>3.46.0.0</sqlite.version>
         <itext.version>7.2.5</itext.version>
-        <main.class>com.catalogos.Main</main.class>
+        <main.class>com.catalogos.Launcher</main.class>
+        <!-- Nombre del instalador generado por jpackage -->
+        <app.name>CatalogoLore</app.name>
+        <app.version>1.0</app.version>
     </properties>
 
 
@@ -91,6 +93,73 @@
                 <configuration>
                     <mainClass>${main.class}</mainClass>
                 </configuration>
+            </plugin>
+
+            <!-- maven-shade-plugin: empaqueta todas las dependencias en un JAR
+                 ejecutable (fat/uber-jar). Requerido por jpackage. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${main.class}</mainClass>
+                                </transformer>
+                                <!-- Evita duplicados de archivos de servicio de módulos -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                            <!-- Excluye firmas digitales de JARs para evitar errores de SecurityException -->
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- exec-maven-plugin: invoca jpackage (incluido en JDK 14+)
+                 para generar el instalador nativo de Windows (.exe / .msi). -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>jpackage</id>
+                        <!-- Solo se ejecuta con: mvn package -Pinstaller -->
+                        <phase>none</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>jpackage</executable>
+                            <arguments>
+                                <argument>--type</argument>       <argument>exe</argument>
+                                <argument>--name</argument>       <argument>CatalogoLore</argument>
+                                <argument>--app-version</argument><argument>1.0</argument>
+                                <argument>--input</argument>      <argument>${project.build.directory}</argument>
+                                <argument>--main-jar</argument>   <argument>${project.artifactId}-${project.version}.jar</argument>
+                                <argument>--main-class</argument> <argument>${main.class}</argument>
+                                <argument>--dest</argument>       <argument>${project.build.directory}/installer</argument>
+                                <argument>--win-shortcut</argument>
+                                <argument>--win-menu</argument>
+                                <argument>--vendor</argument>     <argument>ITC - Ingenieria de Software</argument>
+                                <argument>--description</argument><argument>Sistema Gestor de Catalogos Digitales</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
         </plugins>

@@ -3,10 +3,7 @@ package com.catalogos;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Gestiona la lógica de negocio para categorías.
- * Valida reglas antes de delegar al DAO; nunca ejecuta SQL directamente.
- */
+// Revisa que los datos de las categorias sean correctos antes de guardarlos
 public class GestorCategoria {
 
     private final CategoriaDAO dao;
@@ -15,41 +12,45 @@ public class GestorCategoria {
         this.dao = new CategoriaDAO();
     }
 
-    /**
-     * Registra una nueva categoría tras validar que:
-     * - El nombre no esté vacío.
-     * - No supere 30 caracteres.
-     */
+    // Revisa los datos y guarda una nueva categoria
     public void agregar(String nombre) throws SQLException {
         validarNombre(nombre);
-        Categoria categoria = new Categoria(0, 1, nombre.trim());
-        dao.insertar(categoria);
+        if (dao.existePorNombre(nombre)) {
+            throw new IllegalArgumentException("Ya existe una categoría con ese nombre.");
+        }
+        dao.insertar(new Categoria(0, 1, nombre.trim()));
     }
 
-    /**
-     * Actualiza el nombre de una categoría existente.
-     * Aplica las mismas validaciones que al agregar.
-     */
+    // Revisa los datos y modifica el nombre de una categoria
     public void actualizar(int idCategoria, String nuevoNombre) throws SQLException {
         validarNombre(nuevoNombre);
-        Categoria categoria = new Categoria(idCategoria, 1, nuevoNombre.trim());
-        dao.actualizar(categoria);
+        // Revisa que no exista otra categoria que se llame igual
+        Categoria existente = dao.obtenerTodas().stream()
+                .filter(c -> c.getNombre().equalsIgnoreCase(nuevoNombre.trim())
+                          && c.getIdCategoria() != idCategoria)
+                .findFirst().orElse(null);
+        if (existente != null) {
+            throw new IllegalArgumentException("Ya existe una categoría con ese nombre.");
+        }
+        dao.actualizar(new Categoria(idCategoria, 1, nuevoNombre.trim()));
     }
 
-    /**
-     * Elimina una categoría. Lanzará excepción de BD si tiene productos asociados
-     * (la restricción RESTRICT en la llave foránea lo impide).
-     */
+    // Borra una categoria si no tiene productos adentro
     public void eliminar(int idCategoria) throws SQLException {
-        dao.eliminar(idCategoria);
+        try {
+            dao.eliminar(idCategoria);
+        } catch (SQLException e) {
+            throw new IllegalStateException(
+                    "No se puede eliminar: la categoría tiene productos asociados.", e);
+        }
     }
 
-    /** Devuelve todas las categorías disponibles. */
+    // Obtiene la lista de todas las categorias
     public List<Categoria> listar() throws SQLException {
         return dao.obtenerTodas();
     }
 
-    // Valida que el nombre no sea nulo, vacío ni supere 30 caracteres
+    // Revisa que el nombre tenga texto y no sea muy largo
     private void validarNombre(String nombre) {
         if (nombre == null || nombre.isBlank()) {
             throw new IllegalArgumentException("El nombre de la categoría no puede estar vacío.");

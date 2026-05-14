@@ -6,15 +6,12 @@ import javafx.stage.Stage;
 
 import java.sql.SQLException;
 
-/**
- * Punto de entrada de la aplicación JavaFX.
- * Inicializa la BD en el arranque y cierra la conexión al salir.
- */
+// Archivo principal que arranca el programa
 public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        // Carga la pantalla principal (flujo en estrella)
+        // Muestra la ventana del menu principal
         InterfazPrincipal vista = new InterfazPrincipal(stage);
         Scene escena = new Scene(vista.getRoot(), 900, 650);
         escena.getStylesheets().add(
@@ -28,7 +25,7 @@ public class Main extends Application {
 
     @Override
     public void stop() {
-        // Cierra la conexión a la BD al cerrar la ventana
+        // Desconecta la base de datos cuando se cierra el programa
         try {
             ConexionBD.getInstance().cerrar();
         } catch (SQLException e) {
@@ -37,7 +34,7 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
-        // Inicializa la BD antes de lanzar JavaFX
+        // Prepara la base de datos antes de abrir la pantalla
         try {
             ConexionBD.getInstance();
         } catch (SQLException e) {

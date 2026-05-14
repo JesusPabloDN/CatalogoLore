@@ -11,10 +11,7 @@ import javafx.stage.Stage;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Módulo de gestión de categorías.
- * Permite listar, agregar, editar y eliminar categorías.
- */
+// Pantalla para administrar las categorias
 public class VistaCategorias {
 
     private final Stage              stage;
@@ -40,10 +37,10 @@ public class VistaCategorias {
         VBox contenedor = new VBox(15);
         contenedor.setPadding(new Insets(25));
 
-        // Encabezado con botón regresar
+        // Titulo y boton de atras
         HBox encabezado = encabezado("CATEGORÍAS");
 
-        // Tabla de categorías
+        // Crea la tabla donde se ven las categorias
         tabla = new TableView<>();
         TableColumn<Categoria, String> colNombre = new TableColumn<>("Nombre");
         colNombre.setCellValueFactory(c ->
@@ -52,7 +49,7 @@ public class VistaCategorias {
         tabla.getColumns().add(colNombre);
         tabla.setPrefHeight(300);
 
-        // Formulario de alta/edición
+        // Cuadros de texto y botones
         txtNombre = new TextField();
         txtNombre.setPromptText("Nombre de la categoría (máx. 30 chars)");
         txtNombre.setId("txt-nombre-cat");
@@ -72,7 +69,7 @@ public class VistaCategorias {
         btnEditar.setOnAction(e   -> accionEditar());
         btnEliminar.setOnAction(e -> accionEliminar());
 
-        // Al seleccionar una fila, pre-rellena el campo de texto
+        // Pone el nombre en el cuadro de texto al hacer clic en la tabla
         tabla.getSelectionModel().selectedItemProperty().addListener((obs, old, nuevo) -> {
             if (nuevo != null) txtNombre.setText(nuevo.getNombre());
         });
@@ -87,7 +84,7 @@ public class VistaCategorias {
         return contenedor;
     }
 
-    // Acciones
+    // --- Funciones de los botones ---
     private void accionAgregar() {
         try {
             gestor.agregar(txtNombre.getText());

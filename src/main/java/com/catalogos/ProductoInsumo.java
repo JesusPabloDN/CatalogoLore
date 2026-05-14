@@ -1,9 +1,6 @@
 package com.catalogos;
 
-/**
- * Representa la relación N:M entre Producto e Insumo.
- * Indica cuánto de un insumo se necesita para fabricar UNA unidad del producto.
- */
+// Define que cantidad de insumo se requiere para un producto
 public class ProductoInsumo {
 
     private int    fkProducto;

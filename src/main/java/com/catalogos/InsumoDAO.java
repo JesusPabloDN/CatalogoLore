@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/** CRUD completo para la tabla INSUMO. */
+// Controla el guardado y consulta de Insumos en la base de datos
 public class InsumoDAO {
 
     private final Connection conn;
@@ -13,7 +13,7 @@ public class InsumoDAO {
         this.conn = ConexionBD.getInstance().getConexion();
     }
 
-    /** Inserta un insumo y asigna el id generado al objeto. */
+    // Guarda un nuevo insumo
     public void insertar(Insumo insumo) throws SQLException {
         String sql = "INSERT INTO INSUMO (nombre, stock_actual, unidad_medida) VALUES (?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql,
@@ -28,7 +28,7 @@ public class InsumoDAO {
         }
     }
 
-    /** Devuelve todos los insumos ordenados por nombre. */
+    // Obtiene una lista con todos los insumos
     public List<Insumo> obtenerTodos() throws SQLException {
         List<Insumo> lista = new ArrayList<>();
         String sql = "SELECT id_insumo, nombre, stock_actual, unidad_medida "
@@ -47,7 +47,7 @@ public class InsumoDAO {
         return lista;
     }
 
-    /** Busca un insumo por id; retorna null si no existe. */
+    // Busca un insumo utilizando su identificador
     public Insumo obtenerPorId(int id) throws SQLException {
         String sql = "SELECT id_insumo, nombre, stock_actual, unidad_medida "
                    + "FROM INSUMO WHERE id_insumo = ?";
@@ -67,7 +67,7 @@ public class InsumoDAO {
         return null;
     }
 
-    /** Actualiza nombre, stock y unidad de medida de un insumo. */
+    // Modifica los datos de un insumo
     public void actualizar(Insumo insumo) throws SQLException {
         String sql = "UPDATE INSUMO SET nombre = ?, stock_actual = ?, unidad_medida = ? "
                    + "WHERE id_insumo = ?";
@@ -80,7 +80,7 @@ public class InsumoDAO {
         }
     }
 
-    /** Elimina un insumo por id. Falla si tiene recetas asociadas (CASCADE lo maneja en PRODUCTO_INSUMO). */
+    // Borra un insumo segun su identificador
     public void eliminar(int id) throws SQLException {
         String sql = "DELETE FROM INSUMO WHERE id_insumo = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

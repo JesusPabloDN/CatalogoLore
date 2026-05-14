@@ -5,7 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/** Acceso a datos para el registro único de configuración del negocio. */
+// Consulta y actualiza la configuracion del negocio en la base de datos
 public class DatosCatalogoDAO {
 
     private final Connection conn;
@@ -14,7 +14,7 @@ public class DatosCatalogoDAO {
         this.conn = ConexionBD.getInstance().getConexion();
     }
 
-    /** Recupera el registro de configuración (siempre id_datos = 1). */
+    // Obtiene la informacion del negocio
     public DatosCatalogo obtener() throws SQLException {
         String sql = "SELECT id_datos, nombre_negocio, descripcion, telefono_contacto "
                    + "FROM DATOS_CATALOGO WHERE id_datos = 1";
@@ -32,7 +32,7 @@ public class DatosCatalogoDAO {
         return null;
     }
 
-    /** Actualiza los datos del negocio (siempre opera sobre id_datos = 1). */
+    // Actualiza la informacion del negocio
     public void actualizar(DatosCatalogo datos) throws SQLException {
         String sql = "UPDATE DATOS_CATALOGO SET nombre_negocio = ?, descripcion = ?, "
                    + "telefono_contacto = ? WHERE id_datos = 1";
