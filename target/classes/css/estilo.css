@@ -1,22 +1,12 @@
-/* =========================================================
-   Sistema Gestor de Catálogos Digitales — Hoja de estilos
+/*Sistema Gestor de Catálogos Digitales — Hoja de estilos
    Paleta: #FED16D (fondo) · #754405 (borde) · #FFA100 (botones)
            #FFEAAD (campos) · #000000 (texto) · #FF2600 (errores)
    Fuentes: Press Start 2P (títulos) · VT323 (general)
-   ========================================================= */
 
 /* Carga las fuentes desde internet */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
 
-/* Colores principales del programa */
-* {
-    -fx-color-fondo:    #FED16D;
-    -fx-color-borde:    #754405;
-    -fx-color-boton:    #FFA100;
-    -fx-color-campo:    #FFEAAD;
-    -fx-color-texto:    #000000;
-    -fx-color-error:    #FF2600;
-}
+
 
 /* Color de fondo general */
 .root {
@@ -110,7 +100,8 @@
 }
 
 /* Diseño de las cajas para escribir texto */
-.text-field, .text-area {
+.text-field,
+.text-area {
     -fx-background-color: #FFEAAD;
     -fx-border-color: #754405;
     -fx-border-width: 2px;
@@ -122,7 +113,8 @@
     -fx-padding: 6 10 6 10;
 }
 
-.text-field:focused, .text-area:focused {
+.text-field:focused,
+.text-area:focused {
     -fx-border-color: #FFA100;
     -fx-effect: dropshadow(gaussian, #FFA100, 6, 0.5, 0, 0);
 }
@@ -200,6 +192,6 @@
     -fx-border-color: transparent;
 }
 
-.scroll-pane > .viewport {
+.scroll-pane>.viewport {
     -fx-background-color: #FED16D;
 }
